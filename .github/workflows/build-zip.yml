@@ -1,0 +1,36 @@
+name: Create Resourcepack Zips
+
+on:
+  push:
+    branches:
+      - merged
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Zip for each Pack
+        run: |
+          mkdir -p artifacts
+          
+          # Loop through all directories
+          for d in */ ; do
+            packname="${d%/}"
+            
+            # If the directory has a pack.mcmeta, it is a resource pack!
+            if [ "$packname" != "artifacts" ] && [ -f "$packname/pack.mcmeta" ]; then
+              echo "Zipping pack: $packname"
+              cd "$packname"
+              zip -r "../artifacts/$packname.zip" .
+              cd ..
+            fi
+          done
+
+      - name: Upload Zip Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Resource-Packs
+          path: artifacts/*.zip

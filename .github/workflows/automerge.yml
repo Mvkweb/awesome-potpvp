@@ -1,0 +1,39 @@
+name: Auto Merge to Merged Branch
+
+on:
+  push:
+    branches:
+      - Mvk
+      - Japonya
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches history for all branches
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge branch
+        run: |
+          TRIGGER_BRANCH=${{ github.ref_name }}
+          
+          # Check if 'merged' branch exists on remote, if not create it
+          if git ls-remote --exit-code --heads origin merged; then
+            git checkout merged
+            git pull origin merged
+          else
+            git checkout -b merged
+          fi
+          
+          # Merge the active branch into 'merged'
+          git merge origin/$TRIGGER_BRANCH --no-edit
+          
+          # Push the changes back
+          git push origin merged
